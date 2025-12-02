@@ -546,9 +546,19 @@
 
       function App() {
         const [tab, setTab] = useState('upload');
-        const [baseUrl, setBaseUrl] = useState('');
+        const [baseUrl, setBaseUrl] = useState(
+          // In production (Render static site), talk to the Render backend directly
+          (typeof window !== 'undefined' && window.location.hostname !== 'localhost')
+            ? 'https://lakshyamedha.onrender.com'
+            : ''
+        );
 
         React.useEffect(() => {
+          // Only probe localhost when actually running on localhost
+          if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
+            return;
+          }
+
           let cancelled = false;
           (async () => {
             const ports = [4005];
