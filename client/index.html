@@ -1,0 +1,588 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Medha | Registration</title>
+    <link rel="icon" href="data:," />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  </head>
+  <body class="min-h-screen bg-white text-gray-900">
+    <div id="root"></div>
+
+    <script type="text/javascript">
+      const { useState } = React;
+
+      function Header({ tab, setTab }) {
+        return (
+          React.createElement('header', { className: 'bg-white/80 backdrop-blur border-b border-gray-200' },
+            React.createElement('div', { className: 'max-w-5xl mx-auto px-4 py-3 flex items-center justify-between' },
+              React.createElement('div', { className: 'text-xl font-bold text-gray-900' }, 'Medha Admin'),
+              React.createElement('nav', { className: 'flex gap-2' },
+                React.createElement('button', {
+                  className: `px-3 py-1.5 rounded-lg text-sm font-medium ${tab==='register'?'bg-black text-white':'text-gray-700 hover:bg-gray-100'}`,
+                  onClick: () => setTab('register')
+                }, 'Register'),
+                React.createElement('button', {
+                  className: `px-3 py-1.5 rounded-lg text-sm font-medium ${tab==='upload'?'bg-black text-white':'text-gray-700 hover:bg-gray-100'}`,
+                  onClick: () => setTab('upload')
+                }, 'Questions Upload'),
+                React.createElement('button', {
+                  className: `px-3 py-1.5 rounded-lg text-sm font-medium ${tab==='questions'?'bg-black text-white':'text-gray-700 hover:bg-gray-100'}`,
+                  onClick: () => setTab('questions')
+                }, 'Questions'),
+                React.createElement('button', {
+                  className: `px-3 py-1.5 rounded-lg text-sm font-medium ${tab==='users'?'bg-black text-white':'text-gray-700 hover:bg-gray-100'}`,
+                  onClick: () => setTab('users')
+                }, 'Users'),
+                React.createElement('button', {
+                  className: `px-3 py-1.5 rounded-lg text-sm font-medium ${tab==='liveQuiz'?'bg-black text-white':'text-gray-700 hover:bg-gray-100'}`,
+                  onClick: () => setTab('liveQuiz')
+                }, 'Live Quiz')
+              )
+            )
+          )
+        );
+      }
+
+      function QuestionsTable({ baseUrl }) {
+        const [items, setItems] = React.useState([]);
+        const [loading, setLoading] = React.useState(false);
+        const [error, setError] = React.useState('');
+
+        async function load() {
+          if (!baseUrl) return;
+          setLoading(true); setError('');
+          try {
+            const res = await fetch(`${baseUrl}/api/questions`);
+            const data = await res.json().catch(() => ([]));
+            if (!res.ok) throw new Error(data.error || `Failed (${res.status})`);
+            setItems(Array.isArray(data) ? data : []);
+          } catch (e) {
+            setError(e.message || 'Failed to load questions');
+          } finally {
+            setLoading(false);
+          }
+        }
+
+        React.useEffect(() => { let c=false; (async()=>{ if(!c) await load(); })(); return ()=>{c=true}; }, [baseUrl]);
+
+        return (
+          React.createElement('div', { className: 'w-full max-w-none mx-auto py-10 px-4 sm:px-6 lg:px-8' },
+            React.createElement('div', { className: 'bg-white backdrop-blur rounded-2xl shadow-xl p-6 border border-gray-200' },
+              React.createElement('div', { className: 'flex items-center justify-between mb-4' },
+                React.createElement('h2', { className: 'text-2xl font-bold text-gray-900' }, 'All Questions'),
+                React.createElement('button', { onClick: load, disabled: loading || !baseUrl, className: 'px-3 py-1.5 rounded-lg bg-black text-white text-sm font-medium disabled:opacity-60' }, loading ? 'Refreshing...' : 'Refresh')
+              ),
+              error && React.createElement('div', { className: 'mb-4 text-sm px-3 py-2 rounded bg-red-900/30 text-red-300 border border-red-800' }, error),
+              React.createElement('div', { className: 'overflow-x-auto' },
+                React.createElement('table', { className: 'min-w-full text-sm' },
+                  React.createElement('thead', { className: 'bg-gray-100 text-gray-800' },
+                    React.createElement('tr', null,
+                      React.createElement('th', { className: 'px-3 py-2 text-left font-semibold' }, '#'),
+                      React.createElement('th', { className: 'px-3 py-2 text-left font-semibold' }, 'Round'),
+                      React.createElement('th', { className: 'px-3 py-2 text-left font-semibold' }, 'Level'),
+                      React.createElement('th', { className: 'px-3 py-2 text-left font-semibold' }, 'Question'),
+                      React.createElement('th', { className: 'px-3 py-2 text-left font-semibold' }, 'A'),
+                      React.createElement('th', { className: 'px-3 py-2 text-left font-semibold' }, 'B'),
+                      React.createElement('th', { className: 'px-3 py-2 text-left font-semibold' }, 'C'),
+                      React.createElement('th', { className: 'px-3 py-2 text-left font-semibold' }, 'D'),
+                      React.createElement('th', { className: 'px-3 py-2 text-left font-semibold' }, 'Answer'),
+                      React.createElement('th', { className: 'px-3 py-2 text-left font-semibold' }, 'Points')
+                    )
+                  ),
+                  React.createElement('tbody', null,
+                    (items.length === 0 && !loading)
+                      ? React.createElement('tr', null, React.createElement('td', { colSpan: 10, className: 'px-3 py-4 text-center text-gray-500' }, 'No questions found'))
+                      : items.map((q, idx) => (
+                          React.createElement('tr', { key: q._id || idx, className: idx % 2 ? 'bg-white' : 'bg-gray-50' },
+                            React.createElement('td', { className: 'px-3 py-2 text-gray-700 align-top' }, idx + 1),
+                            React.createElement('td', { className: 'px-3 py-2 text-gray-900 align-top' }, q.round),
+                            React.createElement('td', { className: 'px-3 py-2 text-gray-900 align-top' },
+                              q.level === 1 ? 'Low' : (q.level === 2 ? 'Medium' : (q.level === 3 ? 'High' : q.level))
+                            ),
+                            React.createElement('td', { className: 'px-3 py-2 text-gray-800 align-top whitespace-pre-wrap' }, q.question),
+                            React.createElement('td', { className: 'px-3 py-2 text-gray-800 align-top' }, q?.options?.A || ''),
+                            React.createElement('td', { className: 'px-3 py-2 text-gray-800 align-top' }, q?.options?.B || ''),
+                            React.createElement('td', { className: 'px-3 py-2 text-gray-800 align-top' }, q?.options?.C || ''),
+                            React.createElement('td', { className: 'px-3 py-2 text-gray-800 align-top' }, q?.options?.D || ''),
+                            React.createElement('td', { className: 'px-3 py-2 text-gray-800 align-top' }, q.answer),
+                            React.createElement('td', { className: 'px-3 py-2 text-gray-800 align-top' }, q.points)
+                          )
+                        ))
+                  )
+                )
+              )
+            )
+          )
+        );
+      }
+
+      function UsersTable({ baseUrl }) {
+        const [items, setItems] = React.useState([]);
+        const [loading, setLoading] = React.useState(false);
+        const [error, setError] = React.useState('');
+
+        async function load() {
+          if (!baseUrl) return;
+          setLoading(true); setError('');
+          try {
+            const res = await fetch(`${baseUrl}/api/users`);
+            const data = await res.json().catch(() => ([]));
+            if (!res.ok) throw new Error(data.error || `Failed (${res.status})`);
+            setItems(Array.isArray(data) ? data : []);
+          } catch (e) {
+            setError(e.message || 'Failed to load users');
+          } finally {
+            setLoading(false);
+          }
+        }
+
+        async function submitUpdate(e) {
+          e.preventDefault();
+          setUpdateStatus('');
+          if (!baseUrl) { setUpdateStatus('Backend not detected'); return; }
+          const registrationId = updateForm.registrationId.trim();
+          if (!registrationId) { setUpdateStatus('Registration Id is required'); return; }
+
+          setUpdating(true);
+          try {
+            const res = await fetch(`${baseUrl}/api/leaderboard/update`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                registrationId,
+                score: updateForm.score,
+                correct: updateForm.correct,
+                wrong: updateForm.wrong,
+              }),
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) throw new Error(data.error || `Update failed (${res.status})`);
+            setUpdateStatus(`Updated: ${data.registrationId} (score: ${data.score}, correct: ${data.correct}, wrong: ${data.wrong})`);
+            await load();
+          } catch (err) {
+            setUpdateStatus(err.message || 'Update failed');
+          } finally {
+            setUpdating(false);
+          }
+        }
+
+        React.useEffect(() => { let c=false; (async()=>{ if(!c) await load(); })(); return ()=>{c=true}; }, [baseUrl]);
+
+        return (
+          React.createElement('div', { className: 'w-full max-w-none mx-auto py-10 px-4 sm:px-6 lg:px-8' },
+            React.createElement('div', { className: 'bg-white backdrop-blur rounded-2xl shadow-xl p-6 border border-gray-200' },
+              React.createElement('div', { className: 'flex items-center justify-between mb-4' },
+                React.createElement('h2', { className: 'text-2xl font-bold text-gray-900' }, 'All Users'),
+                React.createElement('button', { onClick: load, disabled: loading || !baseUrl, className: 'px-3 py-1.5 rounded-lg bg-black text-white text-sm font-medium disabled:opacity-60' }, loading ? 'Refreshing...' : 'Refresh')
+              ),
+              error && React.createElement('div', { className: 'mb-4 text-sm px-3 py-2 rounded bg-red-900/30 text-red-300 border border-red-800' }, error),
+              React.createElement('div', { className: 'overflow-x-auto' },
+                React.createElement('table', { className: 'min-w-full text-sm' },
+                  React.createElement('thead', { className: 'bg-gray-100 text-gray-800' },
+                    React.createElement('tr', null,
+                      React.createElement('th', { className: 'px-3 py-2 text-left font-semibold' }, '#'),
+                      React.createElement('th', { className: 'px-3 py-2 text-left font-semibold' }, 'Registration Id'),
+                      React.createElement('th', { className: 'px-3 py-2 text-left font-semibold' }, 'Created At')
+                    )
+                  ),
+                  React.createElement('tbody', null,
+                    (items.length === 0 && !loading)
+                      ? React.createElement('tr', null, React.createElement('td', { colSpan: 3, className: 'px-3 py-4 text-center text-gray-500' }, 'No users found'))
+                      : items.map((u, idx) => (
+                          React.createElement('tr', { key: u._id || idx, className: idx % 2 ? 'bg-white' : 'bg-gray-50' },
+                            React.createElement('td', { className: 'px-3 py-2 text-gray-700' }, idx + 1),
+                            React.createElement('td', { className: 'px-3 py-2 font-medium text-gray-900' }, u.registrationId || ''),
+                            React.createElement('td', { className: 'px-3 py-2 text-gray-700' }, u.createdAt ? new Date(u.createdAt).toLocaleString() : '')
+                          )
+                        ))
+                  )
+                )
+              )
+            )
+          )
+        );
+      }
+
+      function Registration({ baseUrl }) {
+        const [registrationId, setRegistrationId] = useState('');
+        const [password, setPassword] = useState('');
+        const [confirmPassword, setConfirmPassword] = useState('');
+        const [loading, setLoading] = useState(false);
+        const [message, setMessage] = useState(null);
+        const [isError, setIsError] = useState(false);
+
+        async function handleSubmit(e) {
+          e.preventDefault();
+          setMessage(null);
+          setIsError(false);
+
+          if (!registrationId || !password || !confirmPassword) {
+            setMessage('All fields are required.');
+            setIsError(true);
+            return;
+          }
+
+          if (password !== confirmPassword) {
+            setMessage('Passwords do not match.');
+            setIsError(true);
+            return;
+          }
+
+          setLoading(true);
+          try {
+            // Prefer detected baseUrl, then fall back to known ports
+            const candidates = baseUrl ? [baseUrl] : [];
+            const ports = [4005].map(p => `http://localhost:${p}`);
+            let lastTried = '';
+            for (const url of [...candidates, ...ports]) {
+              try {
+                lastTried = url;
+                const res = await fetch(`${url}/api/register`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ registrationId, password, confirmPassword }),
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) throw new Error(data.error || `Registration failed (${res.status})`);
+                setMessage('Registered successfully!');
+                setRegistrationId('');
+                setPassword('');
+                setConfirmPassword('');
+                return;
+              } catch (e) {
+                // try next
+              }
+            }
+            throw new Error(`Failed to reach backend at ${lastTried}`);
+          } catch (err) {
+            setMessage(err.message || 'Something went wrong');
+            setIsError(true);
+          } finally {
+            setLoading(false);
+          }
+        }
+
+        return (
+          React.createElement('div', { className: 'flex items-center justify-center py-10 px-4' },
+            React.createElement('div', { className: 'w-full max-w-md bg-white backdrop-blur rounded-2xl shadow-xl p-8 border border-gray-200' },
+              React.createElement('div', { className: 'text-center mb-6' },
+                React.createElement('h1', { className: 'text-3xl font-bold text-gray-900' }, 'Medha Portal'),
+                React.createElement('p', { className: 'text-gray-600 mt-1' }, 'Create your account')
+              ),
+              message && React.createElement('div', { className: `mb-4 text-sm px-3 py-2 rounded ${isError ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-green-50 text-green-700 border border-green-200'}` }, message),
+              React.createElement('form', { onSubmit: handleSubmit, className: 'space-y-4' },
+                React.createElement('div', null,
+                  React.createElement('label', { className: 'block text-sm font-medium text-gray-800 mb-1' }, 'Registration Id'),
+                  React.createElement('input', {
+                    type: 'text',
+                    value: registrationId,
+                    onChange: (e) => setRegistrationId(e.target.value),
+                    placeholder: 'Enter your Registration Id',
+                    className: 'w-full rounded-lg border-gray-300 bg-white text-gray-900 focus:border-black focus:ring-black shadow-sm',
+                  })
+                ),
+                React.createElement('div', null,
+                  React.createElement('label', { className: 'block text-sm font-medium text-gray-800 mb-1' }, 'Password'),
+                  React.createElement('input', {
+                    type: 'password',
+                    value: password,
+                    onChange: (e) => setPassword(e.target.value),
+                    placeholder: 'Enter password',
+                    className: 'w-full rounded-lg border-gray-300 bg-white text-gray-900 focus:border-black focus:ring-black shadow-sm',
+                  })
+                ),
+                React.createElement('div', null,
+                  React.createElement('label', { className: 'block text-sm font-medium text-gray-800 mb-1' }, 'Confirm Password'),
+                  React.createElement('input', {
+                    type: 'password',
+                    value: confirmPassword,
+                    onChange: (e) => setConfirmPassword(e.target.value),
+                    placeholder: 'Re-enter password',
+                    className: 'w-full rounded-lg border-gray-300 bg-white text-gray-900 focus:border-black focus:ring-black shadow-sm',
+                  })
+                ),
+                React.createElement('button', {
+                  type: 'submit',
+                  disabled: loading,
+                  className: 'w-full inline-flex items-center justify-center rounded-lg bg-black hover:bg-gray-900 text-white font-semibold py-2.5 shadow transition disabled:opacity-60'
+                }, loading ? 'Registering...' : 'Register')
+              ),
+              React.createElement('p', { className: 'text-xs text-center text-gray-500 mt-6' }, 'By registering, you agree to our terms and privacy policy.')
+            )
+          )
+        );
+      }
+
+      function QuestionsUpload({ baseUrl }) {
+        const [files, setFiles] = useState({ 1: { low: null, medium: null, high: null }, 2: { low: null, medium: null, high: null }, 3: { low: null, medium: null, high: null }, 4: { low: null, medium: null, high: null } });
+        const [status, setStatus] = useState({ 1: '', 2: '', 3: '', 4: '' });
+        const [uploading, setUploading] = useState(''); // e.g., '1-low'
+
+        function onPick(round, key, file) {
+          setFiles((prev) => ({ ...prev, [round]: { ...prev[round], [key]: file || null } }));
+        }
+
+        async function uploadOne(round, key) {
+          if (!baseUrl) { setStatus((s) => ({ ...s, [round]: 'Backend not detected' })); return; }
+          const file = files[round][key];
+          if (!file) { setStatus((s) => ({ ...s, [round]: `Choose a CSV for ${key}` })); return; }
+          setUploading(`${round}-${key}`);
+          setStatus((s) => ({ ...s, [round]: '' }));
+          try {
+            const form = new FormData();
+            form.append(key, file);
+            const res = await fetch(`${baseUrl}/api/questions/upload?round=${round}`, { method: 'POST', body: form });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) throw new Error(data.error || `Upload failed (${res.status})`);
+            setStatus((s) => ({ ...s, [round]: `Inserted: ${data.inserted} (levels: ${JSON.stringify(data.levels || {})})` }));
+          } catch (err) {
+            setStatus((s) => ({ ...s, [round]: err.message || 'Upload failed' }));
+          } finally {
+            setUploading('');
+          }
+        }
+
+        const levelSpecs = [
+          { key: 'low', label: 'Low (Level 1)' },
+          { key: 'medium', label: 'Medium (Level 2)' },
+          { key: 'high', label: 'High (Level 3)' },
+        ];
+
+        return (
+          React.createElement('div', { className: 'w-full max-w-none mx-auto py-10 px-4 sm:px-6 lg:px-8' },
+            React.createElement('div', { className: 'bg-white backdrop-blur rounded-2xl shadow-xl p-8 border border-gray-200' },
+              React.createElement('h2', { className: 'text-2xl font-bold text-gray-900 mb-2' }, 'Questions Upload'),
+              React.createElement('p', { className: 'text-gray-700 mb-6' }, 'Upload CSVs per round and level. Columns: question, A, B, C, D, answer, points.'),
+              [1,2,3,4].map((r) => (
+                React.createElement('div', { key: r, className: 'mb-8' },
+                  React.createElement('div', { className: 'flex items-center justify-between mb-3' },
+                    React.createElement('h3', { className: 'text-lg font-semibold text-gray-900' }, `Round ${r}`),
+                    status[r] && React.createElement('div', { className: 'text-sm px-3 py-1 rounded bg-gray-100 text-gray-900 border border-gray-300' }, status[r])
+                  ),
+                  React.createElement('div', { className: 'grid grid-cols-1 md:grid-cols-3 gap-4 items-end' },
+                    levelSpecs.map((lv) => (
+                      React.createElement('div', { key: lv.key, className: 'flex flex-col gap-2' },
+                        React.createElement('label', { className: 'block text-sm font-medium text-gray-800' }, `${lv.label} CSV`),
+                        React.createElement('input', { type: 'file', accept: '.csv', onChange: (e) => onPick(r, lv.key, e.target.files[0] || null), className: 'block w-full text-sm' }),
+                        React.createElement('button', {
+                          type: 'button',
+                          disabled: uploading === `${r}-${lv.key}` || !baseUrl,
+                          onClick: () => uploadOne(r, lv.key),
+                          className: 'inline-flex items-center justify-center rounded-lg bg-black hover:bg-gray-900 text-white text-sm font-medium py-2 px-3 shadow disabled:opacity-60'
+                        }, uploading === `${r}-${lv.key}` ? `Uploading ${lv.label}...` : `Upload ${lv.label}`)
+                      )
+                    ))
+                  )
+                )
+              ))
+            )
+          )
+        );
+      }
+
+      function LiveQuiz({ baseUrl }) {
+        const [currentQuestion, setCurrentQuestion] = useState(null);
+        const [status, setStatus] = useState('Waiting for question...');
+        const [selected, setSelected] = useState('');
+        const [result, setResult] = useState('');
+        const [activeRound, setActiveRound] = useState(1);
+        const [leaderboard, setLeaderboard] = useState([
+          { name: 'Team Alpha', score: 10, correct: 8, wrong: 2 },
+          { name: 'Team Beta', score: 8, correct: 6, wrong: 2 },
+          { name: 'Team Gamma', score: 6, correct: 4, wrong: 2 },
+        ]);
+        const [analysis] = useState([
+          {
+            id: 1,
+            question: 'What is the time complexity of binary search algorithm?',
+            yourAnswer: 'O(log n)',
+            correctAnswer: 'O(log n)',
+            points: 5,
+            isCorrect: true,
+          },
+          {
+            id: 2,
+            question: 'Which data structure uses LIFO principle?',
+            yourAnswer: 'Queue',
+            correctAnswer: 'Stack',
+            points: 0,
+            isCorrect: false,
+          },
+          {
+            id: 3,
+            question: 'What does SQL stand for?',
+            yourAnswer: 'Structured Query Language',
+            correctAnswer: 'Structured Query Language',
+            points: 5,
+            isCorrect: true,
+          },
+        ]);
+
+        // Auto-refresh leaderboard every 2 seconds when backend is available
+        React.useEffect(() => {
+          if (!baseUrl) return;
+
+          let cancelled = false;
+
+          async function fetchLeaderboard() {
+            try {
+              const res = await fetch(`${baseUrl}/api/leaderboard?round=${activeRound}`);
+              const data = await res.json().catch(() => ([]));
+              if (!res.ok || !Array.isArray(data) || cancelled) return;
+
+              // Expecting data items with at least: name, score, correct, wrong
+              setLeaderboard(data
+                .map((row) => ({
+                  name: row.name ?? row.registrationId ?? 'Unknown',
+                  score: Number(row.score ?? 0),
+                  correct: Number(row.correct ?? 0),
+                  wrong: Number(row.wrong ?? 0),
+                }))
+                .sort((a, b) => b.score - a.score)
+              );
+            } catch (_) {
+              // Ignore errors; keep last known leaderboard
+            }
+          }
+
+          fetchLeaderboard();
+          const id = setInterval(fetchLeaderboard, 2000);
+
+          return () => {
+            cancelled = true;
+            clearInterval(id);
+          };
+        }, [baseUrl, activeRound]);
+
+        function loadDummyQuestion() {
+          // Simple placeholder; can later be wired to real backend events
+          const q = {
+            text: 'Example question: What is 2 + 2?',
+            options: { A: '3', B: '4', C: '5', D: '6' },
+            answer: 'B',
+          };
+          setCurrentQuestion(q);
+          setSelected('');
+          setResult('');
+          setStatus('Live question in progress');
+        }
+
+        function submitAnswer() {
+          if (!currentQuestion || !selected) return;
+          if (selected === currentQuestion.answer) {
+            setResult('Correct!');
+            // Demo update: bump Team Alpha score and correct count
+            setLeaderboard((prev) => prev
+              .map((row, idx) => idx === 0
+                ? { ...row, score: row.score + 1, correct: row.correct + 1 }
+                : row
+              )
+              .sort((a, b) => b.score - a.score)
+            );
+          } else {
+            setResult('Incorrect.');
+            // Demo: treat wrong answer as one more wrong for Team Alpha
+            setLeaderboard((prev) => prev
+              .map((row, idx) => idx === 0
+                ? { ...row, wrong: row.wrong + 1 }
+                : row
+              )
+              .sort((a, b) => b.score - a.score)
+            );
+          }
+        }
+
+        const optionKeys = ['A', 'B', 'C', 'D'];
+
+        return (
+          React.createElement('div', { className: 'w-full max-w-3xl mx-auto py-10 px-4 sm:px-6 lg:px-8' },
+            React.createElement('div', { className: 'bg-white rounded-2xl shadow-xl p-6 border border-gray-200' },
+              React.createElement('div', { className: 'flex items-center justify-between mb-3' },
+                React.createElement('div', { className: 'flex flex-col gap-1' },
+                  React.createElement('h3', { className: 'text-lg font-semibold text-gray-900' }, 'Live Leaderboard'),
+                  React.createElement('div', { className: 'flex items-center gap-2' },
+                    [1,2,3,4].map((r) => (
+                      React.createElement('button', {
+                        key: r,
+                        type: 'button',
+                        onClick: () => setActiveRound(r),
+                        className: `px-2.5 py-1 rounded-full text-xs font-medium border ${activeRound===r ? 'bg-black text-white border-black' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'}`,
+                      }, `Round ${r}`)
+                    ))
+                  )
+                ),
+                React.createElement('span', { className: 'text-xs text-gray-500' }, `Round ${activeRound}`)
+              ),
+              React.createElement('div', { className: 'divide-y divide-gray-200' },
+                leaderboard.map((row, idx) => {
+                  const total = (row.correct || 0) + (row.wrong || 0);
+                  const correctPct = total ? Math.round((row.correct || 0) * 100 / total) : 0;
+                  const wrongPct = total ? 100 - correctPct : 0;
+                  return (
+                    React.createElement('div', { key: row.name, className: 'flex flex-col gap-1 py-2' },
+                      React.createElement('div', { className: 'flex items-center justify-between' },
+                        React.createElement('div', { className: 'flex items-center gap-2' },
+                          React.createElement('span', { className: 'text-sm font-medium text-gray-500 w-5 text-right' }, idx + 1),
+                          React.createElement('span', { className: 'text-sm font-semibold text-gray-900' }, row.name)
+                        ),
+                        React.createElement('span', { className: 'text-sm font-semibold text-gray-700' }, row.score, ' pts')
+                      ),
+                      React.createElement('div', { className: 'flex items-center gap-2 text-xs' },
+                        React.createElement('span', { className: 'font-medium text-green-600' }, correctPct, '% correct'),
+                        React.createElement('span', { className: 'font-medium text-red-500' }, wrongPct, '% wrong')
+                      )
+                    )
+                  );
+                })
+              )
+            )
+          )
+        );
+      }
+
+      function App() {
+        const [tab, setTab] = useState('upload');
+        const [baseUrl, setBaseUrl] = useState('');
+
+        React.useEffect(() => {
+          let cancelled = false;
+          (async () => {
+            const ports = [4005];
+            for (const p of ports) {
+              try {
+                const res = await fetch(`http://localhost:${p}/health`, { method: 'GET' });
+                if (res.ok) {
+                  if (!cancelled) setBaseUrl(`http://localhost:${p}`);
+                  break;
+                }
+              } catch (_) {}
+            }
+          })();
+          return () => { cancelled = true; };
+        }, []);
+
+        return (
+          React.createElement('div', null,
+            React.createElement(Header, { tab, setTab }),
+            tab === 'questions'
+              ? React.createElement(QuestionsTable, { baseUrl })
+              : tab === 'users'
+                ? React.createElement(UsersTable, { baseUrl })
+                : tab === 'upload'
+                  ? React.createElement(QuestionsUpload, { baseUrl })
+                  : tab === 'liveQuiz'
+                    ? React.createElement(LiveQuiz, { baseUrl })
+                    : React.createElement(Registration, { baseUrl })
+          )
+        );
+      }
+
+      const root = ReactDOM.createRoot(document.getElementById('root'));
+      root.render(React.createElement(App));
+    </script>
+  </body>
+</html>
